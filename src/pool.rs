@@ -294,6 +294,13 @@ impl<T> Pool<T> {
         PoolIterator::new(self)
     }
 
+    /// Returns a [`PoolIteratorMut`], which iterates over an actual elements.
+    ///
+    /// Elements marked as deleted are skipped.
+    pub fn iter_mut(&mut self) -> PoolIteratorMut<T> {
+        PoolIteratorMut::new(self)
+    }
+
     /// Returns a [`PoolIterator`], which iterates over an actual elements and element ids
     ///
     /// Elements marked as deleted are skipped.
@@ -581,6 +588,75 @@ impl<T> ExactSizeIterator for PoolIterator<'_, T> {
 
 impl<'pool, T> std::iter::FusedIterator for PoolIterator<'pool, T> where
     std::slice::Iter<'pool, PoolItem<T>>: std::iter::FusedIterator
+{
+}
+
+/// Iterator for a [`Pool`].
+///
+/// Yields only an actual elements.
+/// Elements marked as removed are skipped.
+pub struct PoolIteratorMut<'pool, T> {
+    inner: std::slice::IterMut<'pool, PoolItem<T>>,
+    garbage_len: usize,
+}
+
+impl<'pool, T> PoolIteratorMut<'pool, T> {
+    fn new(pool: &'pool mut Pool<T>) -> Self {
+        Self {
+            garbage_len: pool.garbage_len(),
+            inner: pool.vec.iter_mut(),
+        }
+    }
+}
+
+impl<'pool, T> Iterator for PoolIteratorMut<'pool, T> {
+    type Item = &'pool mut T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            let next = self.inner.next()?;
+            match next {
+                PoolItem::Filled(item) => {
+                    return Some(item);
+                }
+                PoolItem::Empty => continue,
+                PoolItem::Tombstone(_) => continue,
+            }
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let hint = self.inner.size_hint();
+        (
+            hint.0.saturating_sub(self.garbage_len),
+            hint.1.map(|x| x.saturating_sub(self.garbage_len)),
+        )
+    }
+}
+
+impl<T> DoubleEndedIterator for PoolIteratorMut<'_, T> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        loop {
+            let next = self.inner.next_back()?;
+            match next {
+                PoolItem::Filled(item) => {
+                    return Some(item);
+                }
+                PoolItem::Empty => continue,
+                PoolItem::Tombstone(_) => continue,
+            }
+        }
+    }
+}
+
+impl<T> ExactSizeIterator for PoolIteratorMut<'_, T> {
+    fn len(&self) -> usize {
+        self.inner.len() - self.garbage_len
+    }
+}
+
+impl<'pool, T> std::iter::FusedIterator for PoolIteratorMut<'pool, T> where
+    std::slice::IterMut<'pool, PoolItem<T>>: std::iter::FusedIterator
 {
 }
 

@@ -528,14 +528,12 @@ impl Pool<NodeId> {
 #[derive(Clone)]
 pub struct PoolIterator<'pool, T> {
     inner: std::slice::Iter<'pool, PoolItem<T>>,
-    garbage_len: usize,
 }
 
 impl<'pool, T> PoolIterator<'pool, T> {
     fn new(pool: &'pool Pool<T>) -> Self {
         PoolIterator {
             inner: pool.vec.iter(),
-            garbage_len: pool.garbage_len(),
         }
     }
 }
@@ -557,11 +555,7 @@ impl<'pool, T> Iterator for PoolIterator<'pool, T> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let hint = self.inner.size_hint();
-        (
-            hint.0.saturating_sub(self.garbage_len),
-            hint.1.map(|x| x.saturating_sub(self.garbage_len)),
-        )
+        self.inner.size_hint()
     }
 }
 
@@ -582,7 +576,7 @@ impl<T> DoubleEndedIterator for PoolIterator<'_, T> {
 
 impl<T> ExactSizeIterator for PoolIterator<'_, T> {
     fn len(&self) -> usize {
-        self.inner.len() - self.garbage_len
+        self.inner.len()
     }
 }
 
@@ -597,13 +591,11 @@ impl<'pool, T> std::iter::FusedIterator for PoolIterator<'pool, T> where
 /// Elements marked as removed are skipped.
 pub struct PoolIteratorMut<'pool, T> {
     inner: std::slice::IterMut<'pool, PoolItem<T>>,
-    garbage_len: usize,
 }
 
 impl<'pool, T> PoolIteratorMut<'pool, T> {
     fn new(pool: &'pool mut Pool<T>) -> Self {
         Self {
-            garbage_len: pool.garbage_len(),
             inner: pool.vec.iter_mut(),
         }
     }
@@ -626,11 +618,7 @@ impl<'pool, T> Iterator for PoolIteratorMut<'pool, T> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let hint = self.inner.size_hint();
-        (
-            hint.0.saturating_sub(self.garbage_len),
-            hint.1.map(|x| x.saturating_sub(self.garbage_len)),
-        )
+        self.inner.size_hint()
     }
 }
 
@@ -651,7 +639,7 @@ impl<T> DoubleEndedIterator for PoolIteratorMut<'_, T> {
 
 impl<T> ExactSizeIterator for PoolIteratorMut<'_, T> {
     fn len(&self) -> usize {
-        self.inner.len() - self.garbage_len
+        self.inner.len()
     }
 }
 
@@ -945,5 +933,105 @@ mod tests {
 
         assert_eq!(pool.len(), 13);
         assert_eq!(pool.garbage_len(), 3);
+    }
+
+    #[test]
+    fn test_iterator() {
+        let mut pool = Pool::<TUVec3u8>::with_capacity(16);
+
+        let iter = pool.iter();
+        assert_eq!(iter.size_hint(), (0, Some(0)));
+        assert_eq!(iter.len(), 0);
+
+        for i in 0..16 {
+            assert_eq!(pool.insert(TUVec3u8::new(i, i, i)), ElementId(i as u32));
+
+            let i = i as usize;
+            let iter = pool.iter();
+            assert_eq!(iter.size_hint(), (i + 1, Some(i + 1)));
+            assert_eq!(iter.len(), i + 1);
+        }
+
+        for i in [0, 2, 4, 6].into_iter() {
+            pool.tombstone(ElementId(i as u32));
+
+            let iter = pool.iter();
+            assert_eq!(iter.size_hint(), (16, Some(16)));
+            assert_eq!(iter.len(), 16);
+        }
+
+        for i in [1, 3, 5, 7].into_iter() {
+            pool.remove(ElementId(i));
+
+            let iter = pool.iter();
+            assert_eq!(iter.size_hint(), (16, Some(16)));
+            assert_eq!(iter.len(), 16);
+        }
+
+        let mut iter = pool.iter();
+        assert_eq!(iter.len(), 16);
+        assert_eq!(iter.size_hint(), (16, Some(16)));
+
+        let mut idx = 0;
+        // After iter.next() iter.inner.len() suddenly changes from 16 to 7.
+        // This is why we can not implement hint_size() as iter.inner.len() - garbage_len
+        // because len becomes 16 -> 7 and garbage_len remains 8
+        // Resulting len() will be 7 - 8, which is overflow.
+        while let Some(el) = iter.next() {
+            assert_eq!(el, &TUVec3u8::new(idx + 8, idx + 8, idx + 8));
+            assert_eq!(iter.size_hint(), (7 - idx as usize, Some(7 - idx as usize)));
+            assert_eq!(iter.len(), 7 - idx as usize);
+            idx += 1;
+        }
+    }
+
+    #[test]
+    fn test_iterator_mut() {
+        let mut pool = Pool::<TUVec3u8>::with_capacity(16);
+
+        let iter = pool.iter_mut();
+        assert_eq!(iter.size_hint(), (0, Some(0)));
+        assert_eq!(iter.len(), 0);
+
+        for i in 0..16 {
+            assert_eq!(pool.insert(TUVec3u8::new(i, i, i)), ElementId(i as u32));
+
+            let i = i as usize;
+            let iter = pool.iter_mut();
+            assert_eq!(iter.size_hint(), (i + 1, Some(i + 1)));
+            assert_eq!(iter.len(), i + 1);
+        }
+
+        for i in [0, 2, 4, 6].into_iter() {
+            pool.tombstone(ElementId(i as u32));
+
+            let iter = pool.iter_mut();
+            assert_eq!(iter.size_hint(), (16, Some(16)));
+            assert_eq!(iter.len(), 16);
+        }
+
+        for i in [1, 3, 5, 7].into_iter() {
+            pool.remove(ElementId(i));
+
+            let iter = pool.iter_mut();
+            assert_eq!(iter.size_hint(), (16, Some(16)));
+            assert_eq!(iter.len(), 16);
+        }
+
+        let mut iter = pool.iter_mut();
+        assert_eq!(iter.len(), 16);
+        assert_eq!(iter.size_hint(), (16, Some(16)));
+
+        let mut idx = 0;
+        // After iter.next() iter.inner.len() suddenly changes from 16 to 7.
+        // This is why we can not implement hint_size() as iter.inner.len() - garbage_len
+        // because len becomes 16 -> 7 and garbage_len remains 8
+        // Resulting len() will be 7 - 8, which is overflow.
+        while let Some(el) = iter.next() {
+            assert_eq!(el, &mut TUVec3u8::new(idx + 8, idx + 8, idx + 8));
+            assert_eq!(iter.size_hint(), (7 - idx as usize, Some(7 - idx as usize)));
+            assert_eq!(iter.len(), 7 - idx as usize);
+            idx += 1;
+        }
     }
 }

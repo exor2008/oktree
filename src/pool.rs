@@ -967,6 +967,32 @@ mod tests {
             assert_eq!(iter.size_hint(), (0, Some(7 - idx as usize)));
             idx += 1;
         }
+
+        let mut iter = pool.iter();
+
+        assert_eq!(iter.next(), Some(&TUVec3u8::new(8, 8, 8)));
+        assert_eq!(iter.size_hint(), (0, Some(7)));
+
+        assert_eq!(iter.next_back(), Some(&TUVec3u8::new(15, 15, 15)));
+        assert_eq!(iter.size_hint(), (0, Some(6)));
+
+        assert_eq!(iter.next(), Some(&TUVec3u8::new(9, 9, 9)));
+        assert_eq!(iter.size_hint(), (0, Some(5)));
+
+        assert_eq!(iter.next_back(), Some(&TUVec3u8::new(14, 14, 14)));
+        assert_eq!(iter.size_hint(), (0, Some(4)));
+
+        assert_eq!(iter.next(), Some(&TUVec3u8::new(10, 10, 10)));
+        assert_eq!(iter.size_hint(), (0, Some(3)));
+
+        assert_eq!(iter.next_back(), Some(&TUVec3u8::new(13, 13, 13)));
+        assert_eq!(iter.size_hint(), (0, Some(2)));
+
+        assert_eq!(iter.next(), Some(&TUVec3u8::new(11, 11, 11)));
+        assert_eq!(iter.size_hint(), (0, Some(1)));
+
+        assert_eq!(iter.next_back(), Some(&TUVec3u8::new(12, 12, 12)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
     }
 
     #[test]
@@ -1011,5 +1037,31 @@ mod tests {
             assert_eq!(iter.size_hint(), (0, Some(7 - idx as usize)));
             idx += 1;
         }
+
+        let mut iter = pool.iter_mut();
+
+        assert_eq!(iter.next(), Some(&mut TUVec3u8::new(8, 8, 8)));
+        assert_eq!(iter.size_hint(), (0, Some(7)));
+
+        assert_eq!(iter.next_back(), Some(&mut TUVec3u8::new(15, 15, 15)));
+        assert_eq!(iter.size_hint(), (0, Some(6)));
+
+        assert_eq!(iter.next(), Some(&mut TUVec3u8::new(9, 9, 9)));
+        assert_eq!(iter.size_hint(), (0, Some(5)));
+
+        assert_eq!(iter.next_back(), Some(&mut TUVec3u8::new(14, 14, 14)));
+        assert_eq!(iter.size_hint(), (0, Some(4)));
+
+        assert_eq!(iter.next(), Some(&mut TUVec3u8::new(10, 10, 10)));
+        assert_eq!(iter.size_hint(), (0, Some(3)));
+
+        assert_eq!(iter.next_back(), Some(&mut TUVec3u8::new(13, 13, 13)));
+        assert_eq!(iter.size_hint(), (0, Some(2)));
+
+        assert_eq!(iter.next(), Some(&mut TUVec3u8::new(11, 11, 11)));
+        assert_eq!(iter.size_hint(), (0, Some(1)));
+
+        assert_eq!(iter.next_back(), Some(&mut TUVec3u8::new(12, 12, 12)));
+        assert_eq!(iter.size_hint(), (0, Some(0)));
     }
 }

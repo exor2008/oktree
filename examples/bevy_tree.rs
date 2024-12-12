@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use bevy::{color::palettes::css::RED, prelude::*};
+use bevy::{color::palettes::css::RED, math::Vec3A, prelude::*};
 use oktree::prelude::*;
 use rand::Rng;
 
@@ -34,13 +34,8 @@ fn setup(mut commands: Commands) {
 
     let position = Transform::from_xyz(-(RANGE as f32), 0.0, (RANGE / 2) as f32)
         .looking_at(Vec3::splat((RANGE / 2) as f32), Vec3::Z);
-    commands.spawn((
-        Camera3dBundle {
-            transform: position,
-            ..default()
-        },
-        Camera,
-    ));
+
+    commands.spawn((Name::new("Camera"), Camera3d::default(), position));
 }
 
 fn draw_nodes(mut gizmos: Gizmos, tree: Res<Tree>) {
@@ -59,9 +54,10 @@ fn draw_nodes(mut gizmos: Gizmos, tree: Res<Tree>) {
 
 fn draw_elements(mut gizmos: Gizmos, tree: Res<Tree>) {
     for element in tree.0.iter() {
+        let t: Vec3A = element.volume().center().into();
+
         gizmos.sphere(
-            element.volume().center().into(),
-            Quat::IDENTITY,
+            Isometry3d::from_translation(t),
             element.volume().size() as f32,
             RED,
         );
@@ -135,9 +131,6 @@ enum Mode {
 
 #[derive(Resource)]
 struct Counter(usize);
-
-#[derive(Component)]
-struct Camera;
 
 struct DummyCell<U: Unsigned> {
     position: TUVec3<U>,

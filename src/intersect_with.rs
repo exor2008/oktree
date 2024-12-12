@@ -1,13 +1,13 @@
 //! Helper functions with a custom intersection closure.
 
-use heapless::Vec as HVec;
-
 use crate::{
     bounding::{Aabb, Unsigned},
     node::NodeType,
     tree::Octree,
     ElementId, NodeId, Volume,
 };
+use alloc::vec::Vec;
+use heapless::Vec as HVec;
 
 impl<U, T> Octree<U, T>
 where

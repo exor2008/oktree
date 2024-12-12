@@ -1,18 +1,20 @@
 //! [`Pool`] implementation.
 
-use std::{
-    array::from_fn,
-    iter::Enumerate,
-    ops::{Index, IndexMut},
-};
-
-use smallvec::SmallVec;
-
 use crate::{
     bounding::{Aabb, Unsigned},
     node::{Node, NodeType},
     ElementId, NodeId, TreeError, Volume,
 };
+use alloc::{fmt, vec, vec::Vec};
+use core::{
+    array::from_fn,
+    iter,
+    iter::Enumerate,
+    mem,
+    ops::{Index, IndexMut},
+    slice,
+};
+use smallvec::SmallVec;
 
 /// [`PoolItem`] data structure that combines both the garbage flag
 /// and the actual item together for better cache locality.
@@ -28,8 +30,8 @@ impl<T> From<T> for PoolItem<T> {
     }
 }
 
-impl<T: std::fmt::Debug> std::fmt::Debug for PoolItem<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<T: fmt::Debug> fmt::Debug for PoolItem<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             PoolItem::Filled(item) => write!(f, "Filled({:?})", item),
             PoolItem::Tombstone(item) => write!(f, "Garbage({:?})", item),
@@ -91,8 +93,8 @@ impl<T: Volume> Pool<T> {
     }
 }
 
-impl<T: std::fmt::Debug> std::fmt::Debug for Pool<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<T: fmt::Debug> fmt::Debug for Pool<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Pool")
             .field("vec", &self.vec)
             .field("garbage", &self.garbage)
@@ -234,7 +236,7 @@ impl<T> Pool<T> {
         let mut carry_over = Vec::with_capacity(self.garbage.len());
         for idx in self.garbage.drain(..) {
             let mut item = PoolItem::Empty;
-            std::mem::swap(&mut self.vec[idx], &mut item);
+            mem::swap(&mut self.vec[idx], &mut item);
             self.vec[idx] = match item {
                 PoolItem::Filled(item) => {
                     is_err = true;
@@ -398,7 +400,7 @@ impl<T> Pool<T> {
         let index: usize = element.into();
 
         let mut item = PoolItem::Empty;
-        std::mem::swap(&mut self.vec[index], &mut item);
+        mem::swap(&mut self.vec[index], &mut item);
         self.vec[index] = match item {
             PoolItem::Filled(item) => {
                 self.garbage.push(index);
@@ -417,7 +419,7 @@ impl<T> Pool<T> {
         let mut ret = None;
 
         let mut item = PoolItem::Empty;
-        std::mem::swap(&mut self.vec[index], &mut item);
+        mem::swap(&mut self.vec[index], &mut item);
         self.vec[index] = match item {
             PoolItem::Filled(item) => {
                 ret = Some(item);
@@ -527,7 +529,7 @@ impl Pool<NodeId> {
 /// Elements marked as removed are skipped.
 #[derive(Clone)]
 pub struct PoolIterator<'pool, T> {
-    inner: std::slice::Iter<'pool, PoolItem<T>>,
+    inner: slice::Iter<'pool, PoolItem<T>>,
 }
 
 impl<'pool, T> PoolIterator<'pool, T> {
@@ -575,8 +577,8 @@ impl<T> DoubleEndedIterator for PoolIterator<'_, T> {
     }
 }
 
-impl<'pool, T> std::iter::FusedIterator for PoolIterator<'pool, T> where
-    std::slice::Iter<'pool, PoolItem<T>>: std::iter::FusedIterator
+impl<'pool, T> iter::FusedIterator for PoolIterator<'pool, T> where
+    slice::Iter<'pool, PoolItem<T>>: iter::FusedIterator
 {
 }
 
@@ -585,7 +587,7 @@ impl<'pool, T> std::iter::FusedIterator for PoolIterator<'pool, T> where
 /// Yields only an actual elements.
 /// Elements marked as removed are skipped.
 pub struct PoolIteratorMut<'pool, T> {
-    inner: std::slice::IterMut<'pool, PoolItem<T>>,
+    inner: slice::IterMut<'pool, PoolItem<T>>,
 }
 
 impl<'pool, T> PoolIteratorMut<'pool, T> {
@@ -633,8 +635,8 @@ impl<T> DoubleEndedIterator for PoolIteratorMut<'_, T> {
     }
 }
 
-impl<'pool, T> std::iter::FusedIterator for PoolIteratorMut<'pool, T> where
-    std::slice::IterMut<'pool, PoolItem<T>>: std::iter::FusedIterator
+impl<'pool, T> iter::FusedIterator for PoolIteratorMut<'pool, T> where
+    slice::IterMut<'pool, PoolItem<T>>: iter::FusedIterator
 {
 }
 
@@ -644,7 +646,7 @@ impl<'pool, T> std::iter::FusedIterator for PoolIteratorMut<'pool, T> where
 /// Elements marked as removed are skipped.
 #[derive(Clone)]
 pub struct PoolElementIterator<'pool, T> {
-    inner: Enumerate<std::slice::Iter<'pool, PoolItem<T>>>,
+    inner: Enumerate<slice::Iter<'pool, PoolItem<T>>>,
     garbage_len: usize,
 }
 
@@ -703,8 +705,8 @@ impl<T> ExactSizeIterator for PoolElementIterator<'_, T> {
     }
 }
 
-impl<'pool, T> std::iter::FusedIterator for PoolElementIterator<'pool, T> where
-    std::slice::Iter<'pool, PoolItem<T>>: std::iter::FusedIterator
+impl<'pool, T> iter::FusedIterator for PoolElementIterator<'pool, T> where
+    slice::Iter<'pool, PoolItem<T>>: iter::FusedIterator
 {
 }
 
@@ -714,7 +716,7 @@ impl<'pool, T> std::iter::FusedIterator for PoolElementIterator<'pool, T> where
 /// Elements marked as removed are skipped.
 #[derive(Clone)]
 pub struct PoolIntoIterator<T> {
-    inner: std::vec::IntoIter<PoolItem<T>>,
+    inner: vec::IntoIter<PoolItem<T>>,
     garbage_len: usize,
 }
 
@@ -773,8 +775,8 @@ impl<T> ExactSizeIterator for PoolIntoIterator<T> {
     }
 }
 
-impl<T> std::iter::FusedIterator for PoolIntoIterator<T> where
-    std::vec::IntoIter<PoolItem<T>>: std::iter::FusedIterator
+impl<T> iter::FusedIterator for PoolIntoIterator<T> where
+    vec::IntoIter<PoolItem<T>>: iter::FusedIterator
 {
 }
 

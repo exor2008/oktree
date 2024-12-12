@@ -6,7 +6,10 @@ use crate::{
     pool::{Pool, PoolElementIterator, PoolIntoIterator, PoolItem, PoolIterator, PoolIteratorMut},
     ElementId, NodeId, TreeError, Volume,
 };
-
+use alloc::vec::Vec;
+// #[cfg(feature = "std")]
+use alloc::{fmt, format};
+use core::{fmt::Write, iter};
 use smallvec::SmallVec;
 
 /// Fast implementation of the octree data structure.
@@ -421,7 +424,7 @@ where
     }
 }
 
-impl<U: Unsigned, T: Volume<U = U>> std::iter::IntoIterator for Octree<U, T> {
+impl<U: Unsigned, T: Volume<U = U>> iter::IntoIterator for Octree<U, T> {
     type Item = T;
     type IntoIter = PoolIntoIterator<T>;
 
@@ -430,11 +433,12 @@ impl<U: Unsigned, T: Volume<U = U>> std::iter::IntoIterator for Octree<U, T> {
     }
 }
 
-impl<U: Unsigned, T: Volume<U = U>> std::fmt::Debug for Octree<U, T>
+#[cfg(feature = "std")]
+impl<U: Unsigned, T: Volume<U = U>> fmt::Debug for Octree<U, T>
 where
-    T: std::fmt::Debug,
+    T: fmt::Debug,
 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Octree")
             .field("elements", &self.elements)
             .field("nodes", &self.nodes)

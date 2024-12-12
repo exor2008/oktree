@@ -185,6 +185,7 @@
 //!   ```
 
 #![allow(dead_code)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(feature = "bevy")]
 pub mod bevy_integration;
@@ -195,17 +196,16 @@ pub mod node;
 pub mod pool;
 pub mod prelude;
 pub mod tree;
-
 use bounding::{TUVec3, Unsigned};
-use prelude::Aabb;
-use std::{
-    borrow::Cow,
+use core::{
     error::Error,
     fmt::{self},
     ops::Deref,
-    sync::Arc,
 };
+use prelude::Aabb;
 
+extern crate alloc;
+use alloc::{borrow::Cow, boxed::Box, string::String, sync::Arc};
 /// Implement to represent your object as a point in a [`tree`](tree::Octree)
 ///
 /// Implement on stored type to inform a tree

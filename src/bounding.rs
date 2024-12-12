@@ -2,14 +2,10 @@
 //!
 //! [`TUVec3`], [`BVec3`], [`Aabb`]
 
-use std::{
-    fmt::{Debug, Display},
-    ops::{Add, AddAssign, BitAnd, Div, DivAssign, Mul, MulAssign, Shr, Sub, SubAssign},
-};
-
-use num::{cast, Integer, NumCast, Saturating, Unsigned as NumUnsigned};
-
 use crate::{Position, TreeError};
+use alloc::fmt::{self, Debug, Display};
+use core::ops::{Add, AddAssign, BitAnd, Div, DivAssign, Mul, MulAssign, Shr, Sub, SubAssign};
+use num::{cast, Integer, NumCast, Saturating, Unsigned as NumUnsigned};
 
 pub trait Unsigned:
     Integer
@@ -131,7 +127,7 @@ impl<U: Unsigned> DivAssign<U> for TUVec3<U> {
 }
 
 impl<U: Unsigned> Display for TUVec3<U> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Uvec3: x: {}, y: {}, z: {}", self.x, self.y, self.z)
     }
 }
@@ -237,7 +233,7 @@ impl<U: Unsigned> Default for Aabb<U> {
 }
 
 impl<U: Unsigned> Display for Aabb<U> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Aabb(min: {}, max: {})", self.min, self.max)
     }
 }

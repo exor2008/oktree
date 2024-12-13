@@ -59,7 +59,9 @@ Run benchmark:
 cargo bench --all-features
 ```
 
-## Example
+## Examples
+
+### Simple
 
 You have to specify the type for the internal tree structure.
 
@@ -146,10 +148,24 @@ impl DummyCell {
 }
 ```
 
+### Bevy
+
 Run bevy visual example:
 
 ```sh
 cargo run --release --example bevy_tree --all-features
+```
+
+### no_std
+
+`no_std` is supported, but you steel need to specify a global allocator.
+
+See [example](https://github.com/exor2008/oktree/blob/main/examples/no_std.rs) with a custom allocator.
+
+Run `no_std` example
+
+```sh
+cargo run --no-default-features --features bevy --example no_std
 ```
 
 ## Check yourself list:

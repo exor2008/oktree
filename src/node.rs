@@ -1,12 +1,11 @@
 //! [`Node`] implementation.
 
-use core::fmt;
-
 use crate::{
     bounding::{Aabb, TUVec3, Unsigned},
     pool::Pool,
     ElementId, NodeId,
 };
+use core::fmt;
 
 /// [`Octree's`](crate::tree::Octree) node.
 ///

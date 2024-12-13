@@ -196,6 +196,7 @@ pub mod node;
 pub mod pool;
 pub mod prelude;
 pub mod tree;
+use alloc::{borrow::Cow, boxed::Box, string::String, sync::Arc};
 use bounding::{TUVec3, Unsigned};
 use core::{
     error::Error,
@@ -205,7 +206,6 @@ use core::{
 use prelude::Aabb;
 
 extern crate alloc;
-use alloc::{borrow::Cow, boxed::Box, string::String, sync::Arc};
 /// Implement to represent your object as a point in a [`tree`](tree::Octree)
 ///
 /// Implement on stored type to inform a tree

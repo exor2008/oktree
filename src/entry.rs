@@ -1,9 +1,7 @@
 use super::*;
 use crate::prelude::*;
+use core::fmt;
 use core::ops::DerefMut;
-
-#[cfg(feature = "std")]
-use std::fmt;
 
 impl<U: Unsigned, T: Volume<U = U>> Octree<U, T> {
     /// Gets the given key's corresponding entry in the map for in-place manipulation.

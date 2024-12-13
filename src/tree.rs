@@ -6,10 +6,9 @@ use crate::{
     pool::{Pool, PoolElementIterator, PoolIntoIterator, PoolItem, PoolIterator, PoolIteratorMut},
     ElementId, NodeId, TreeError, Volume,
 };
+use alloc::format;
 use alloc::vec::Vec;
-// #[cfg(feature = "std")]
-use alloc::{fmt, format};
-use core::{fmt::Write, iter};
+use core::{fmt, iter};
 use smallvec::SmallVec;
 
 /// Fast implementation of the octree data structure.
@@ -433,7 +432,6 @@ impl<U: Unsigned, T: Volume<U = U>> iter::IntoIterator for Octree<U, T> {
     }
 }
 
-#[cfg(feature = "std")]
 impl<U: Unsigned, T: Volume<U = U>> fmt::Debug for Octree<U, T>
 where
     T: fmt::Debug,

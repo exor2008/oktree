@@ -9,18 +9,19 @@ license = "MIT"
 
 [features]
 default = ["std"]
-std = ["num/default"]
-bevy = ["dep:bevy", "std"]
+std = ["num/default", "bevy/default"]
+bevy = ["dep:bevy"]
 
 [dependencies]
 num = { version = "0.4.3", default-features = false}
 bevy = { version = ">=0.9", optional = true }
 heapless = "0.8.0"
-smallvec = {version = "1.13.2", features = ["const_generics"]}
+smallvec = { version = "1.13.2", features = ["const_generics"] }
 
 [dev-dependencies]
 criterion = "0.5.1"
 rand = "0.8.5"
+wee_alloc = "0.4.5"
 
 [[bench]]
 name = "benchmark"
@@ -40,6 +41,11 @@ required-features = ["bevy"]
 [[example]]
 name = "profile"
 path = "examples/profile.rs"
+required-features = ["bevy"]
+
+[[example]]
+name = "no_std"
+path = "examples/no_std.rs"
 required-features = ["bevy"]
 
 [package.metadata.docs.rs]

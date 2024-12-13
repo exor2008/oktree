@@ -5,10 +5,11 @@ use crate::{
     node::{Node, NodeType},
     ElementId, NodeId, TreeError, Volume,
 };
-use alloc::{fmt, vec, vec::Vec};
+use alloc::vec;
+use alloc::vec::{IntoIter, Vec};
 use core::{
     array::from_fn,
-    iter,
+    fmt, iter,
     iter::Enumerate,
     mem,
     ops::{Index, IndexMut},
@@ -716,7 +717,7 @@ impl<'pool, T> iter::FusedIterator for PoolElementIterator<'pool, T> where
 /// Elements marked as removed are skipped.
 #[derive(Clone)]
 pub struct PoolIntoIterator<T> {
-    inner: vec::IntoIter<PoolItem<T>>,
+    inner: IntoIter<PoolItem<T>>,
     garbage_len: usize,
 }
 
@@ -775,10 +776,7 @@ impl<T> ExactSizeIterator for PoolIntoIterator<T> {
     }
 }
 
-impl<T> iter::FusedIterator for PoolIntoIterator<T> where
-    vec::IntoIter<PoolItem<T>>: iter::FusedIterator
-{
-}
+impl<T> iter::FusedIterator for PoolIntoIterator<T> where IntoIter<PoolItem<T>>: iter::FusedIterator {}
 
 #[cfg(test)]
 mod tests {

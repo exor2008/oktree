@@ -3,7 +3,7 @@
 //! [`TUVec3`], [`BVec3`], [`Aabb`]
 
 use crate::{Position, TreeError};
-use alloc::fmt::{self, Debug, Display};
+use core::fmt::{self, Debug, Display};
 use core::ops::{Add, AddAssign, BitAnd, Div, DivAssign, Mul, MulAssign, Shr, Sub, SubAssign};
 use num::{cast, Integer, NumCast, Saturating, Unsigned as NumUnsigned};
 

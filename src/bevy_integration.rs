@@ -57,19 +57,19 @@
 //! assert_eq!(test, vec![ElementId(0), ElementId(1)]);
 //! ```
 
-use bevy::math::{
-    bounding::{Aabb3d, BoundingSphere, IntersectsVolume, RayCast3d},
-    Vec3, Vec3A,
-};
-use heapless::Vec as HVec;
-use num::cast;
-
 use crate::{
     bounding::{Aabb, TUVec3, Unsigned},
     node::NodeType,
     tree::Octree,
     ElementId, NodeId, Volume,
 };
+use alloc::vec::Vec;
+use bevy::math::{
+    bounding::{Aabb3d, BoundingSphere, IntersectsVolume, RayCast3d},
+    Vec3, Vec3A,
+};
+use heapless::Vec as HVec;
+use num::cast;
 
 impl<U, T> Octree<U, T>
 where

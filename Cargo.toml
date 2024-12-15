@@ -1,7 +1,7 @@
 [package]
 name = "oktree"
 description = "Fast octree implementation."
-version = "0.4.1"
+version = "0.5.0"
 repository = "https://github.com/exor2008/oktree"
 keywords = ["graphics", "bevy", "voxel", "octree"]
 edition = "2021"

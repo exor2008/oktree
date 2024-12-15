@@ -165,40 +165,52 @@
 //! cargo run --no-default-features --features bevy --example no_std
 //! ```
 //!
-//!
-//! ## Check yourself list:
+//! ## Contribution guide
 //!
 //! Feature and pull requests are welcomed.
 //!
-//! - tests
+//! 1. Clone the Oktree [repo](https://github.com/exor2008/oktree)
 //!
-//!   ```sh
-//!   cargo test --all-targets --all-features --release
-//!   ```
+//! ```sh
+//! git clone https://github.com/exor2008/oktree
+//! ```
 //!
-//! - clippy
+//! 2. Implement awesome feature
 //!
-//!   ```sh
-//!   cargo clippy --all-targets --all-features
-//!   ```
+//! 3. Run tests
 //!
-//! - examples
+//! ```sh
+//! cargo test --all-targets --all-features --release
+//! ```
 //!
-//!   ```sh
-//!   cargo run --all-features --example simple
-//!   cargo run --all-features --example bevy_tree
-//!   ```
+//! 4. Make sure clippy is happy
 //!
-//! - benchmark
+//! ```sh
+//! cargo clippy --all-targets --all-features
+//! ```
 //!
-//!   ```sh
-//!   cargo bench --all-features
-//!   ```
+//! 5. Run examples
 //!
-//! - docs
-//!   ```sh
-//!   cargo doc --no-deps --open --all-features
-//!   ```
+//! ```sh
+//! cargo run --all-features --example simple
+//! cargo run --all-features --example bevy_tree
+//! cargo run --no-default-features --features bevy --example no_std
+//! ```
+//!
+//! 6. Run benchmark
+//!
+//! ```sh
+//! cargo bench --all-features
+//! ```
+//!
+//! 7. Check the docs:
+//!
+//! ```sh
+//! cargo doc --no-deps --open --all-features
+//! ```
+//!
+//! 8. Start pull request
+//!
 
 #![allow(dead_code)]
 #![cfg_attr(not(feature = "std"), no_std)]

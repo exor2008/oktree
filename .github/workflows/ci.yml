@@ -33,12 +33,18 @@ jobs:
         command: test
         args: --all-targets --all-features --release
 
-    - name: Run Example
+    - name: Run Simple Example
       uses: actions-rs/cargo@v1
       with:
         command: run
         args: --all-features --example simple
         
+    - name: Run no_std Example
+      uses: actions-rs/cargo@v1
+      with:
+        command: run
+        args: --no-default-features --features bevy --example no_std
+ 
     - name: Build Docs
       uses: actions-rs/cargo@v1
       with:

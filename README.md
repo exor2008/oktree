@@ -67,7 +67,7 @@ You have to specify the type for the internal tree structure.
 
 It must be any `Unsigned` type (`u8`, `u16`, `u32`, `u64`, `u128` or `usize`).
 
-Implement [`Position`](https://docs.rs/oktree/latest/oktree/trait.Position) or [`Volume`](https://docs.rs/oktree/latest/oktree/trait.Volume) for the handled type, so that it can return it's spatial coordinates.
+Implement [`Position`](https://docs.rs/oktree/latest/oktree/trait.Position.html) or [`Volume`](https://docs.rs/oktree/latest/oktree/trait.Volume.html) for the handled type, so that it can return it's spatial coordinates.
 
 ```rust
 use bevy::math::{

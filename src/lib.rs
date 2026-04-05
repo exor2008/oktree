@@ -153,6 +153,8 @@
 //! cargo run --release --example bevy_tree --all-features
 //! ```
 //!
+//! Bevy 0.18 supported.
+//!
 //! ### no_std
 //!
 //! `no_std` is supported, but you steel need to specify a global allocator.

@@ -31,6 +31,8 @@ To enable bevy integrations:
 oktree = { version = "0.5.1", features = ["bevy"] }
 ```
 
+Bevy 0.18 supported.
+
 ### Optimizations:
 
 - `Unsigned` arithmetics, bitwise operations.

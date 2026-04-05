@@ -58,7 +58,7 @@ impl fmt::Display for NodeType {
         match self {
             NodeType::Empty => write!(f, "NodeType: Empty"),
             NodeType::Leaf(e) => write!(f, "NodeType: Leaf({e})"),
-            NodeType::Branch(branch) => write!(f, "NodeType: Branch({:?})", branch),
+            NodeType::Branch(branch) => write!(f, "NodeType: Branch({branch:?})"),
         }
     }
 }

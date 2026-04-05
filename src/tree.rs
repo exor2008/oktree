@@ -119,8 +119,7 @@ where
             if !was_inserted {
                 self.elements.tombstone(element);
                 return Err(TreeError::AlreadyOccupied(format!(
-                    "Elements for volume: {} already exists",
-                    volume
+                    "Elements for volume: {volume} already exists"
                 )));
             }
 
@@ -413,7 +412,7 @@ where
     }
 
     /// Returns an iterator over the nodes in the tree.
-    pub fn iter_nodes(&self) -> PoolIterator<Node<U>> {
+    pub fn iter_nodes(&self) -> PoolIterator<'_, Node<U>> {
         self.nodes.iter()
     }
 

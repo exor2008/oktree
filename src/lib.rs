@@ -26,7 +26,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! oktree = { version = "0.5.0", features = ["bevy"] }
+//! oktree = { version = "0.5.1", features = ["bevy"] }
 //! ```
 //!
 //! Intersection methods are not available without this feature.
@@ -421,7 +421,7 @@ mod tests {
     use super::*;
     use bounding::Aabb;
     use node::NodeType;
-    use rand::Rng;
+    use rand::RngExt;
     use std::collections::HashSet;
     use tree::Octree;
 
@@ -586,11 +586,11 @@ mod tests {
     }
 
     fn random_point() -> DummyCell<usize> {
-        let mut rnd = rand::thread_rng();
+        let mut rnd = rand::rng();
 
-        let x = rnd.gen_range(0..=RANGE);
-        let y = rnd.gen_range(0..=RANGE);
-        let z = rnd.gen_range(0..=RANGE);
+        let x = rnd.random_range(0..=RANGE);
+        let y = rnd.random_range(0..=RANGE);
+        let z = rnd.random_range(0..=RANGE);
         let position = TUVec3::new(x, y, z);
         DummyCell::new(position)
     }

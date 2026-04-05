@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use bevy::{color::palettes::css::RED, math::Vec3A, prelude::*};
 use oktree::prelude::*;
-use rand::Rng;
+use rand::RngExt;
 
 const RANGE: u32 = 256;
 const SIZE: u32 = 16;
@@ -45,8 +45,8 @@ fn draw_nodes(mut gizmos: Gizmos, tree: Res<Tree>) {
             Transform::from_translation(node.aabb.center().into()).with_scale(Vec3::splat(scale));
 
         match node.ntype {
-            NodeType::Empty => gizmos.cuboid(transform, Color::srgb(0.7, 0.7, 0.7)),
-            NodeType::Leaf(_) => gizmos.cuboid(transform, Color::srgb(0.9, 0.45, 0.0)),
+            NodeType::Empty => gizmos.cube(transform, Color::srgb(0.7, 0.7, 0.7)),
+            NodeType::Leaf(_) => gizmos.cube(transform, Color::srgb(0.9, 0.45, 0.0)),
             NodeType::Branch(_) => (),
         };
     }
@@ -73,17 +73,17 @@ fn spawn_points(
 ) {
     timer.timer.tick(time.delta());
 
-    if timer.timer.finished() {
+    if timer.timer.is_finished() {
         match *mode {
             Mode::Insert => {
-                let mut rnd = rand::thread_rng();
+                let mut rnd = rand::rng();
                 let position = TUVec3 {
-                    x: rnd.gen_range(0..RANGE),
-                    y: rnd.gen_range(0..RANGE),
-                    z: rnd.gen_range(0..RANGE),
+                    x: rnd.random_range(0..RANGE),
+                    y: rnd.random_range(0..RANGE),
+                    z: rnd.random_range(0..RANGE),
                 };
-                if rnd.gen_bool(SPAWN_VOLUME_FREQUENCY) {
-                    let c = DummyVolume::new(position, rnd.gen_range(0..SIZE));
+                if rnd.random_bool(SPAWN_VOLUME_FREQUENCY) {
+                    let c = DummyVolume::new(position, rnd.random_range(0..SIZE));
                     tree.0.insert(c).ok();
                 } else {
                     let c = DummyCell::new(position);

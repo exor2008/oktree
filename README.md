@@ -28,7 +28,7 @@ To enable bevy integrations:
 
 ```toml
 [dependencies]
-oktree = { version = "0.5.0", features = ["bevy"] }
+oktree = { version = "0.5.1", features = ["bevy"] }
 ```
 
 ### Optimizations:

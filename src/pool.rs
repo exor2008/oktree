@@ -34,8 +34,8 @@ impl<T> From<T> for PoolItem<T> {
 impl<T: fmt::Debug> fmt::Debug for PoolItem<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            PoolItem::Filled(item) => write!(f, "Filled({:?})", item),
-            PoolItem::Tombstone(item) => write!(f, "Garbage({:?})", item),
+            PoolItem::Filled(item) => write!(f, "Filled({item:?})"),
+            PoolItem::Tombstone(item) => write!(f, "Garbage({item:?})"),
             PoolItem::Empty => write!(f, "Empty"),
         }
     }
@@ -293,21 +293,21 @@ impl<T> Pool<T> {
     /// Returns a [`PoolIterator`], which iterates over an actual elements.
     ///
     /// Elements marked as deleted are skipped.
-    pub fn iter(&self) -> PoolIterator<T> {
+    pub fn iter(&self) -> PoolIterator<'_, T> {
         PoolIterator::new(self)
     }
 
     /// Returns a [`PoolIteratorMut`], which iterates over an actual elements.
     ///
     /// Elements marked as deleted are skipped.
-    pub fn iter_mut(&mut self) -> PoolIteratorMut<T> {
+    pub fn iter_mut(&mut self) -> PoolIteratorMut<'_, T> {
         PoolIteratorMut::new(self)
     }
 
     /// Returns a [`PoolIterator`], which iterates over an actual elements and element ids
     ///
     /// Elements marked as deleted are skipped.
-    pub fn iter_elements(&self) -> PoolElementIterator<T> {
+    pub fn iter_elements(&self) -> PoolElementIterator<'_, T> {
         PoolElementIterator::new(self)
     }
 }

@@ -16,7 +16,7 @@ impl<U: Unsigned, T: Volume<U = U>> Octree<U, T> {
     /// }
     /// ```
     #[inline]
-    pub fn entry(&mut self, key: TUVec3<U>) -> Entry<U, T> {
+    pub fn entry(&mut self, key: TUVec3<U>) -> Entry<'_, U, T> {
         match self.find(&key) {
             Some(value) => Entry::Occupied(OccupiedEntry {
                 base: self,

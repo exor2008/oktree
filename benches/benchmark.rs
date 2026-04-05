@@ -6,7 +6,7 @@ use bevy::math::{
 };
 use criterion::{criterion_group, criterion_main, Criterion};
 use oktree::prelude::*;
-use rand::Rng;
+use rand::RngExt;
 
 const RANGE: usize = 4096;
 const COUNT: usize = 65536;
@@ -33,12 +33,12 @@ impl<U: Unsigned> DummyCell<U> {
 
 fn random_points() -> Vec<DummyCell<usize>> {
     let mut points = Vec::with_capacity(COUNT);
-    let mut rnd = rand::thread_rng();
+    let mut rnd = rand::rng();
 
     for _ in 0..COUNT {
-        let x = rnd.gen_range(0..=RANGE);
-        let y = rnd.gen_range(0..=RANGE);
-        let z = rnd.gen_range(0..=RANGE);
+        let x = rnd.random_range(0..=RANGE);
+        let y = rnd.random_range(0..=RANGE);
+        let z = rnd.random_range(0..=RANGE);
         let position = TUVec3::new(x, y, z);
         let cell = DummyCell::new(position);
 
@@ -50,17 +50,17 @@ fn random_points() -> Vec<DummyCell<usize>> {
 
 fn random_rays() -> Vec<RayCast3d> {
     let mut rays = Vec::with_capacity(RAY_COUNT);
-    let mut rnd = rand::thread_rng();
+    let mut rnd = rand::rng();
 
     for _ in 0..RAY_COUNT {
-        let x = rnd.gen_range(0.0..=RANGE as f32);
-        let y = rnd.gen_range(0.0..=RANGE as f32);
-        let z = rnd.gen_range(0.0..=RANGE as f32);
+        let x = rnd.random_range(0.0..=RANGE as f32);
+        let y = rnd.random_range(0.0..=RANGE as f32);
+        let z = rnd.random_range(0.0..=RANGE as f32);
         let origin = Vec3A::new(x, y, z);
 
-        let x_dir = rnd.gen_range(0.0..=1.0);
-        let y_dir = rnd.gen_range(0.0..=1.0);
-        let z_dir = rnd.gen_range(0.0..=1.0);
+        let x_dir = rnd.random_range(0.0..=1.0);
+        let y_dir = rnd.random_range(0.0..=1.0);
+        let z_dir = rnd.random_range(0.0..=1.0);
         let direction = Vec3A::new(x_dir, y_dir, z_dir);
         let direction = Dir3A::new(direction).unwrap();
 
@@ -73,14 +73,14 @@ fn random_rays() -> Vec<RayCast3d> {
 
 fn random_spheres() -> Vec<BoundingSphere> {
     let mut spheres = Vec::with_capacity(RAY_COUNT);
-    let mut rnd = rand::thread_rng();
+    let mut rnd = rand::rng();
 
     for _ in 0..RAY_COUNT {
-        let x = rnd.gen_range(0.0..=RANGE as f32);
-        let y = rnd.gen_range(0.0..=RANGE as f32);
-        let z = rnd.gen_range(0.0..=RANGE as f32);
+        let x = rnd.random_range(0.0..=RANGE as f32);
+        let y = rnd.random_range(0.0..=RANGE as f32);
+        let z = rnd.random_range(0.0..=RANGE as f32);
         let position = Vec3A::new(x, y, z);
-        let radius = rnd.gen_range(0.0..VOLUME_SIZE);
+        let radius = rnd.random_range(0.0..VOLUME_SIZE);
         let sphere = BoundingSphere::new(position, radius);
 
         spheres.push(sphere);
@@ -91,16 +91,16 @@ fn random_spheres() -> Vec<BoundingSphere> {
 
 fn random_aabbs() -> Vec<Aabb3d> {
     let mut aabbs = Vec::with_capacity(RAY_COUNT);
-    let mut rnd = rand::thread_rng();
+    let mut rnd = rand::rng();
 
     for _ in 0..RAY_COUNT {
-        let x = rnd.gen_range(0.0..=RANGE as f32);
-        let y = rnd.gen_range(0.0..=RANGE as f32);
-        let z = rnd.gen_range(0.0..=RANGE as f32);
+        let x = rnd.random_range(0.0..=RANGE as f32);
+        let y = rnd.random_range(0.0..=RANGE as f32);
+        let z = rnd.random_range(0.0..=RANGE as f32);
 
-        let x_size = rnd.gen_range(0.0..=VOLUME_SIZE);
-        let y_size = rnd.gen_range(0.0..=VOLUME_SIZE);
-        let z_size = rnd.gen_range(0.0..=VOLUME_SIZE);
+        let x_size = rnd.random_range(0.0..=VOLUME_SIZE);
+        let y_size = rnd.random_range(0.0..=VOLUME_SIZE);
+        let z_size = rnd.random_range(0.0..=VOLUME_SIZE);
 
         let position = Vec3A::new(x, y, z);
         let size = Vec3A::new(x_size, y_size, z_size);

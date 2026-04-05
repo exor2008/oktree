@@ -2,16 +2,16 @@ const RANGE: usize = 65536;
 const COUNT: usize = 65536 * 16;
 
 use oktree::prelude::*;
-use rand::Rng;
+use rand::RngExt;
 
 fn random_points() -> Vec<DummyCell<usize>> {
     let mut points = Vec::with_capacity(COUNT);
-    let mut rnd = rand::thread_rng();
+    let mut rnd = rand::rng();
 
     for _ in 0..COUNT {
-        let x = rnd.gen_range(0..=RANGE);
-        let y = rnd.gen_range(0..=RANGE);
-        let z = rnd.gen_range(0..=RANGE);
+        let x = rnd.random_range(0..=RANGE);
+        let y = rnd.random_range(0..=RANGE);
+        let z = rnd.random_range(0..=RANGE);
         let position = TUVec3::new(x, y, z);
         let cell = DummyCell::new(position);
 

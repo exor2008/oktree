@@ -345,7 +345,13 @@ where
         }
     }
 
-    /// Returns the element if element exists and not garbaged.
+    /// Returns the element if element exists and is not garbage.
+    ///
+    /// Mutating the element's [`Volume`] does not reindex the tree and can
+    /// invalidate spatial queries. Mutate only non-spatial fields.
+    #[deprecated(
+        note = "mutating an element's Volume does not reindex the tree; mutate only non-spatial fields"
+    )]
     pub fn get_element_mut(&mut self, element: ElementId) -> Option<&mut T> {
         if self.elements.is_garbage(element) {
             None
@@ -364,7 +370,13 @@ where
         }
     }
 
-    /// Returns the element if element exists and not garbaged.
+    /// Returns the element if element exists and is not garbage.
+    ///
+    /// Mutating the element's [`Volume`] does not reindex the tree and can
+    /// invalidate spatial queries. Mutate only non-spatial fields.
+    #[deprecated(
+        note = "mutating an element's Volume does not reindex the tree; mutate only non-spatial fields"
+    )]
     pub fn get_mut(&mut self, point: &TUVec3<U>) -> Option<&mut T> {
         let element = self.find(point)?;
         if self.elements.is_garbage(element) {
@@ -406,7 +418,13 @@ where
         self.elements.iter()
     }
 
-    /// Returns an mutable iterator over the elements in the tree.
+    /// Returns a mutable iterator over the elements in the tree.
+    ///
+    /// Mutating an element's [`Volume`] does not reindex the tree and can
+    /// invalidate spatial queries. Mutate only non-spatial fields.
+    #[deprecated(
+        note = "mutating an element's Volume does not reindex the tree; mutate only non-spatial fields"
+    )]
     pub fn iter_mut(&mut self) -> PoolIteratorMut<'_, T> {
         self.elements.iter_mut()
     }

@@ -648,14 +648,14 @@ impl<'pool, T> iter::FusedIterator for PoolIteratorMut<'pool, T> where
 #[derive(Clone)]
 pub struct PoolElementIterator<'pool, T> {
     inner: Enumerate<slice::Iter<'pool, PoolItem<T>>>,
-    garbage_len: usize,
+    remaining: usize,
 }
 
 impl<'pool, T> PoolElementIterator<'pool, T> {
     fn new(pool: &'pool Pool<T>) -> Self {
         PoolElementIterator {
             inner: pool.vec.iter().enumerate(),
-            garbage_len: pool.garbage_len(),
+            remaining: pool.len(),
         }
     }
 }
@@ -668,6 +668,7 @@ impl<'pool, T> Iterator for PoolElementIterator<'pool, T> {
             let next = self.inner.next()?;
             match next.1 {
                 PoolItem::Filled(item) => {
+                    self.remaining -= 1;
                     return Some((ElementId(next.0 as u32), item));
                 }
                 PoolItem::Empty => continue,
@@ -677,11 +678,7 @@ impl<'pool, T> Iterator for PoolElementIterator<'pool, T> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let hint = self.inner.size_hint();
-        (
-            hint.0.saturating_sub(self.garbage_len),
-            hint.1.map(|x| x.saturating_sub(self.garbage_len)),
-        )
+        (self.remaining, Some(self.remaining))
     }
 }
 
@@ -691,6 +688,7 @@ impl<T> DoubleEndedIterator for PoolElementIterator<'_, T> {
             let next = self.inner.next_back()?;
             match next.1 {
                 PoolItem::Filled(item) => {
+                    self.remaining -= 1;
                     return Some((ElementId(next.0 as u32), item));
                 }
                 PoolItem::Empty => continue,
@@ -702,7 +700,7 @@ impl<T> DoubleEndedIterator for PoolElementIterator<'_, T> {
 
 impl<T> ExactSizeIterator for PoolElementIterator<'_, T> {
     fn len(&self) -> usize {
-        self.inner.len() - self.garbage_len
+        self.remaining
     }
 }
 
@@ -718,13 +716,14 @@ impl<'pool, T> iter::FusedIterator for PoolElementIterator<'pool, T> where
 #[derive(Clone)]
 pub struct PoolIntoIterator<T> {
     inner: IntoIter<PoolItem<T>>,
-    garbage_len: usize,
+    remaining: usize,
 }
 
 impl<T> PoolIntoIterator<T> {
     fn new(pool: Pool<T>) -> Self {
+        let remaining = pool.len();
         PoolIntoIterator {
-            garbage_len: pool.garbage_len(),
+            remaining,
             inner: pool.vec.into_iter(),
         }
     }
@@ -738,6 +737,7 @@ impl<T> Iterator for PoolIntoIterator<T> {
             let next = self.inner.next()?;
             match next {
                 PoolItem::Filled(item) => {
+                    self.remaining -= 1;
                     return Some(item);
                 }
                 PoolItem::Empty => continue,
@@ -747,11 +747,7 @@ impl<T> Iterator for PoolIntoIterator<T> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let hint = self.inner.size_hint();
-        (
-            hint.0.saturating_sub(self.garbage_len),
-            hint.1.map(|x| x.saturating_sub(self.garbage_len)),
-        )
+        (self.remaining, Some(self.remaining))
     }
 }
 
@@ -761,6 +757,7 @@ impl<T> DoubleEndedIterator for PoolIntoIterator<T> {
             let next = self.inner.next_back()?;
             match next {
                 PoolItem::Filled(item) => {
+                    self.remaining -= 1;
                     return Some(item);
                 }
                 PoolItem::Empty => continue,
@@ -772,7 +769,7 @@ impl<T> DoubleEndedIterator for PoolIntoIterator<T> {
 
 impl<T> ExactSizeIterator for PoolIntoIterator<T> {
     fn len(&self) -> usize {
-        self.inner.len() - self.garbage_len
+        self.remaining
     }
 }
 
@@ -1063,5 +1060,74 @@ mod tests {
 
         assert_eq!(iter.next_back(), Some(&mut TUVec3u8::new(12, 12, 12)));
         assert_eq!(iter.size_hint(), (0, Some(0)));
+    }
+
+    #[test]
+    fn test_element_iterator_exact_size_with_leading_garbage() {
+        let mut pool = Pool::<TUVec3u8>::with_capacity(16);
+        for i in 0..16 {
+            pool.insert(TUVec3u8::new(i, i, i));
+        }
+        for i in 0..8 {
+            if i % 2 == 0 {
+                pool.tombstone(ElementId(i));
+            } else {
+                pool.remove(ElementId(i));
+            }
+        }
+
+        let mut iter = pool.iter_elements();
+        assert_eq!(iter.len(), 8);
+        assert_eq!(iter.size_hint(), (8, Some(8)));
+
+        assert_eq!(iter.next().map(|(id, _)| id), Some(ElementId(8)));
+        assert_eq!(iter.len(), 7);
+        assert_eq!(iter.size_hint(), (7, Some(7)));
+
+        assert_eq!(iter.next_back().map(|(id, _)| id), Some(ElementId(15)));
+        assert_eq!(iter.len(), 6);
+        assert_eq!(iter.size_hint(), (6, Some(6)));
+
+        let remaining: Vec<_> = iter.map(|(id, _)| id).collect();
+        assert_eq!(
+            remaining,
+            vec![
+                ElementId(9),
+                ElementId(10),
+                ElementId(11),
+                ElementId(12),
+                ElementId(13),
+                ElementId(14)
+            ]
+        );
+    }
+
+    #[test]
+    fn test_into_iterator_exact_size_with_leading_garbage() {
+        let mut pool = Pool::<TUVec3u8>::with_capacity(16);
+        for i in 0..16 {
+            pool.insert(TUVec3u8::new(i, i, i));
+        }
+        for i in 0..8 {
+            if i % 2 == 0 {
+                pool.tombstone(ElementId(i));
+            } else {
+                pool.remove(ElementId(i));
+            }
+        }
+
+        let mut iter = pool.into_iter();
+        assert_eq!(iter.len(), 8);
+        assert_eq!(iter.size_hint(), (8, Some(8)));
+
+        assert_eq!(iter.next(), Some(TUVec3u8::new(8, 8, 8)));
+        assert_eq!(iter.len(), 7);
+        assert_eq!(iter.size_hint(), (7, Some(7)));
+
+        assert_eq!(iter.next_back(), Some(TUVec3u8::new(15, 15, 15)));
+        assert_eq!(iter.len(), 6);
+        assert_eq!(iter.size_hint(), (6, Some(6)));
+
+        assert_eq!(iter.count(), 6);
     }
 }

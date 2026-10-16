@@ -3,6 +3,7 @@
 //! [`TUVec3`], [`BVec3`], [`Aabb`]
 
 use crate::{Position, TreeError};
+use alloc::format;
 use core::fmt::{self, Debug, Display};
 use core::ops::{Add, AddAssign, BitAnd, Div, DivAssign, Mul, MulAssign, Shr, Sub, SubAssign};
 use num::{cast, Integer, NumCast, Saturating, Unsigned as NumUnsigned};
@@ -175,12 +176,15 @@ impl<U: Unsigned> TUVec3<U> {
         self.x >= half_size && self.y >= half_size && self.z >= half_size
     }
 
-    /// Creates [`Aabb`] with size of 1 from current [`TUVec3`].
+    /// Creates an [`Aabb`] with size 1 from this [`TUVec3`].
+    ///
+    /// A component already at `U::MAX` saturates, producing zero width on that
+    /// axis rather than wrapping to zero.
     pub fn unit_aabb(&self) -> Aabb<U> {
         let max = TUVec3::new(
-            self.x + cast(1).unwrap(),
-            self.y + cast(1).unwrap(),
-            self.z + cast(1).unwrap(),
+            self.x.saturating_add(cast(1).unwrap()),
+            self.y.saturating_add(cast(1).unwrap()),
+            self.z.saturating_add(cast(1).unwrap()),
         );
         Aabb { min: *self, max }
     }
@@ -239,7 +243,10 @@ impl<U: Unsigned> Display for Aabb<U> {
 }
 
 impl<U: Unsigned> Aabb<U> {
-    /// Creates a new [Aabb] object without any checks
+    /// Creates a new [`Aabb`] object without validating its bounds.
+    ///
+    /// Arithmetic is saturated rather than wrapped, but a bound that cannot be
+    /// represented by `U` can still produce invalid, zero-width geometry.
     pub fn new_unchecked(center: TUVec3<U>, half_size: U) -> Self {
         Aabb {
             min: TUVec3::new(
@@ -248,9 +255,9 @@ impl<U: Unsigned> Aabb<U> {
                 center.z.saturating_sub(half_size),
             ),
             max: TUVec3::new(
-                center.x + half_size,
-                center.y + half_size,
-                center.z + half_size,
+                center.x.saturating_add(half_size),
+                center.y.saturating_add(half_size),
+                center.z.saturating_add(half_size),
             ),
         }
     }
@@ -261,26 +268,40 @@ impl<U: Unsigned> Aabb<U> {
     /// and are powers of 2.
     pub fn new(center: TUVec3<U>, half_size: U) -> Result<Self, TreeError> {
         if !center.is_positive_aabb(half_size) {
-            Err(TreeError::NotPositive(
-                "Center: {center}, half size: {half_size}".into(),
-            ))
+            Err(TreeError::NotPositive(format!(
+                "Center: {center}, half size: {half_size}"
+            )))
         } else if !is_power2(half_size) {
-            Err(TreeError::NotPower2("half size: {half_size}".into()))
+            Err(TreeError::NotPower2(format!("Half size: {half_size}")))
         } else {
-            Ok(Self::new_unchecked(center, half_size))
+            let aabb = Self::new_unchecked(center, half_size);
+            if aabb.max.x.saturating_sub(center.x) != half_size
+                || aabb.max.y.saturating_sub(center.y) != half_size
+                || aabb.max.z.saturating_sub(center.z) != half_size
+            {
+                Err(TreeError::NotPositive(format!(
+                    "Upper bound exceeds coordinate range. Center: {center}, half size: {half_size}"
+                )))
+            } else {
+                Ok(aabb)
+            }
         }
     }
 
-    /// Creates a new [`Aabb`] object from a min and max
+    /// Creates an [`Aabb`] from minimum and maximum bounds without validation.
+    ///
+    /// Callers are responsible for ensuring every minimum component is less
+    /// than its corresponding maximum component.
     pub fn from_min_max(min: TUVec3<U>, max: TUVec3<U>) -> Self {
         Self { min, max }
     }
 
     pub fn center(&self) -> TUVec3<U> {
+        let shift = cast(1).unwrap();
         TUVec3::new(
-            (self.min.x + self.max.x) >> cast(1).unwrap(),
-            (self.min.y + self.max.y) >> cast(1).unwrap(),
-            (self.min.z + self.max.z) >> cast(1).unwrap(),
+            self.min.x + (self.max.x.saturating_sub(self.min.x) >> shift),
+            self.min.y + (self.max.y.saturating_sub(self.min.y) >> shift),
+            self.min.z + (self.max.z.saturating_sub(self.min.z) >> shift),
         )
     }
 
@@ -358,11 +379,11 @@ impl<U: Unsigned> Aabb<U> {
     }
 
     pub fn unit(&self) -> bool {
-        self.max.x - self.min.x == cast(1).unwrap()
+        self.max.x.saturating_sub(self.min.x) == cast(1).unwrap()
     }
 
     pub fn size(&self) -> U {
-        self.max.x - self.min.x
+        self.max.x.saturating_sub(self.min.x)
     }
 }
 
@@ -425,6 +446,24 @@ mod tests {
 
         // 7 is not the power of 2
         assert!(Aabb::new(TUVec3::splat(16u16), 7).is_err());
+
+        // The upper bound cannot be represented by u8.
+        assert!(Aabb::new(TUVec3::splat(192u8), 64).is_err());
+    }
+
+    #[test]
+    fn test_aabb_boundary_arithmetic_does_not_overflow() {
+        let high = Aabb::from_min_max(TUVec3::splat(198u8), TUVec3::splat(202));
+        assert_eq!(high.center(), TUVec3::splat(200));
+
+        let unit = TUVec3::splat(u8::MAX).unit_aabb();
+        assert_eq!(unit.min, TUVec3::splat(u8::MAX));
+        assert_eq!(unit.max, TUVec3::splat(u8::MAX));
+
+        let invalid = Aabb::from_min_max(TUVec3::splat(10u8), TUVec3::splat(5));
+        assert_eq!(invalid.center(), TUVec3::splat(10));
+        assert_eq!(invalid.size(), 0);
+        assert!(!invalid.unit());
     }
 }
 

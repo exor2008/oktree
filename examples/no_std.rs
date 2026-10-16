@@ -4,10 +4,6 @@ use bevy::math::{bounding::RayCast3d, Dir3, Ray3d, Vec3};
 use oktree::prelude::*;
 
 extern crate alloc;
-extern crate wee_alloc;
-
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 fn main() -> Result<(), TreeError> {
     let aabb = Aabb::new_unchecked(TUVec3::splat(8u8), 8);

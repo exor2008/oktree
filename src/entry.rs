@@ -161,7 +161,14 @@ impl<'a, U: Unsigned, T: Volume<U = U>> Entry<'a, U, T> {
 
     /// Provides in-place mutable access to an occupied entry before any
     /// potential inserts into the map.
+    ///
+    /// Mutating the value's [`Volume`] does not reindex the tree and can
+    /// invalidate spatial queries. Mutate only non-spatial fields.
     #[inline]
+    #[deprecated(
+        note = "mutating an element's Volume does not reindex the tree; mutate only non-spatial fields"
+    )]
+    #[allow(deprecated)]
     pub fn and_modify<F>(self, f: F) -> Self
     where
         F: FnOnce(&mut T),
@@ -176,8 +183,10 @@ impl<'a, U: Unsigned, T: Volume<U = U>> Entry<'a, U, T> {
     }
 }
 
-/// A view into an occupied entry in a `Octree`.
-/// It is part of the [`Entry`] enum.
+/// A view into an occupied tree entry.
+///
+/// Mutable dereferencing must not change the value's [`Volume`], because that
+/// does not reindex the tree and can invalidate spatial queries.
 pub struct OccupiedEntry<'a, U: Unsigned, T: Volume<U = U>> {
     base: &'a mut Octree<U, T>,
     key: TUVec3<U>,
@@ -212,7 +221,14 @@ impl<'a, U: Unsigned, T: Volume<U = U>> OccupiedEntry<'a, U, T> {
     }
 
     /// Gets a mutable reference to the value in the entry.
+    ///
+    /// Mutating the value's [`Volume`] does not reindex the tree and can
+    /// invalidate spatial queries. Mutate only non-spatial fields.
     #[inline]
+    #[deprecated(
+        note = "mutating an element's Volume does not reindex the tree; mutate only non-spatial fields"
+    )]
+    #[allow(deprecated)]
     pub fn get_mut(&mut self) -> &mut T {
         self.base.get_element_mut(self.element).unwrap()
     }
@@ -224,13 +240,25 @@ impl<'a, U: Unsigned, T: Volume<U = U>> OccupiedEntry<'a, U, T> {
     }
 
     /// Gets a mutable reference to the value in the entry.
+    ///
+    /// Mutating the value's [`Volume`] does not reindex the tree and can
+    /// invalidate spatial queries. Mutate only non-spatial fields.
     #[inline]
+    #[deprecated(
+        note = "mutating an element's Volume does not reindex the tree; mutate only non-spatial fields"
+    )]
+    #[allow(deprecated)]
     pub fn into_mut(self) -> &'a mut T {
         self.base.get_element_mut(self.element).unwrap()
     }
 
     /// Sets the value of the entry, and returns the entry's old value.
+    ///
+    /// Replacing a value with a different [`Volume`] does not reindex the tree
+    /// and can invalidate spatial queries.
     #[inline]
+    #[deprecated(note = "replacing an element with a different Volume does not reindex the tree")]
+    #[allow(deprecated)]
     pub fn insert(&'a mut self, value: T) -> &'a mut T {
         let ret = self.base.get_element_mut(self.element).unwrap();
         *ret = value;
@@ -247,6 +275,7 @@ impl<U: Unsigned, T: Volume<U = U>> Deref for OccupiedEntry<'_, U, T> {
 }
 
 impl<U: Unsigned, T: Volume<U = U>> DerefMut for OccupiedEntry<'_, U, T> {
+    #[allow(deprecated)]
     fn deref_mut(&mut self) -> &mut T {
         self.get_mut()
     }

@@ -5,51 +5,45 @@ on:
     tags:
       - v[0-9]+.[0-9]+.[0-9]+
 
+permissions:
+  contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    
-    - uses: actions-rs/toolchain@v1
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       with:
-        toolchain: nightly
-        components: clippy
-        override: true
+        persist-credentials: false
+
+    - name: Audit dependencies
+      uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998 # v2.0.0
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install Rust nightly
+      run: |
+        rustup toolchain install nightly --profile minimal --component clippy
+        rustup override set nightly
 
     - name: Install bevy dependencies
-      run: sudo apt-get install g++ pkg-config libx11-dev libasound2-dev libudev-dev libxkbcommon-x11-0 libwayland-dev 
+      run: sudo apt-get install g++ pkg-config libx11-dev libasound2-dev libudev-dev libxkbcommon-x11-0
 
     - name: Run Clippy (Linting)
-      uses: actions-rs/cargo@v1
-      with:
-        command: clippy
-        args: --all-targets --all-features -- -D warnings
+      run: cargo clippy --all-targets --all-features -- -D warnings
 
     - name: Run Simple Example
-      uses: actions-rs/cargo@v1
-      with:
-        command: run
-        args: --all-features --example simple
+      run: cargo run --all-features --example simple
         
     - name: Run no_std Example
-      uses: actions-rs/cargo@v1
-      with:
-        command: run
-        args: --no-default-features --features bevy --example no_std
+      run: cargo run --no-default-features --features bevy --example no_std
 
     - name: Run Tests
-      uses: actions-rs/cargo@v1
-      with:
-        command: test
-        args: --all-targets --all-features --release
- 
-    - name: Install toml-cli
-      run: cargo install toml-cli
+      run: cargo test --all-targets --all-features --release
     
     - name: Check version
-      run: test "v$(toml get -r Cargo.toml package.version)" = "${{ github.ref_name }}"
+      run: test "v$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')" = "${{ github.ref_name }}"
       
     - name: Publish
       run: cargo publish

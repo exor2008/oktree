@@ -70,9 +70,9 @@
 //!
 //! ```rust
 //! use bevy::math::{
-//!     bounding::{Aabb3d, BoundingSphere, RayCast3d},
 //!     Dir3, Vec3,
 //! };
+//! use bevy::shape::{Aabb3d, BoundingSphere, RayCast3d};
 //! use oktree::prelude::*;
 //!
 //! fn main() -> Result<(), TreeError> {

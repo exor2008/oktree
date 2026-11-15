@@ -406,67 +406,6 @@ pub fn is_power2<U: Unsigned>(mut half_size: U) -> bool {
     true
 }
 
-#[cfg(test)]
-mod tests {
-    use super::{is_power2, Aabb, TUVec3};
-
-    #[test]
-    fn test_aabb_contains() {
-        let aabb = Aabb::new_unchecked(TUVec3::new(8, 8, 8), 8u16);
-        assert!(aabb.contains(&TUVec3::zero()));
-
-        assert!(aabb.contains(&TUVec3::new(8, 8, 8)));
-
-        assert!(!aabb.contains(&TUVec3::new(16, 16, 16)));
-
-        assert!(!aabb.contains(&TUVec3::new(0, 16, 8)));
-    }
-
-    #[test]
-    fn test_ispower2() {
-        assert!(!is_power2(0u32));
-        assert!(!is_power2(1u32));
-        assert!(is_power2(2u8));
-        assert!(!is_power2(3u32));
-        assert!(is_power2(4u16));
-        assert!(!is_power2(5u16));
-        assert!(is_power2(8u8));
-        assert!(!is_power2(1023usize));
-        assert!(is_power2(1024usize));
-        assert!(!is_power2(1025usize));
-    }
-
-    #[test]
-    fn test_aabb_constructor() {
-        // Ok
-        assert!(Aabb::new(TUVec3::splat(2u8), 2).is_ok());
-
-        // Negative dimensions
-        assert!(Aabb::new(TUVec3::splat(16u16), 64).is_err());
-
-        // 7 is not the power of 2
-        assert!(Aabb::new(TUVec3::splat(16u16), 7).is_err());
-
-        // The upper bound cannot be represented by u8.
-        assert!(Aabb::new(TUVec3::splat(192u8), 64).is_err());
-    }
-
-    #[test]
-    fn test_aabb_boundary_arithmetic_does_not_overflow() {
-        let high = Aabb::from_min_max(TUVec3::splat(198u8), TUVec3::splat(202));
-        assert_eq!(high.center(), TUVec3::splat(200));
-
-        let unit = TUVec3::splat(u8::MAX).unit_aabb();
-        assert_eq!(unit.min, TUVec3::splat(u8::MAX));
-        assert_eq!(unit.max, TUVec3::splat(u8::MAX));
-
-        let invalid = Aabb::from_min_max(TUVec3::splat(10u8), TUVec3::splat(5));
-        assert_eq!(invalid.center(), TUVec3::splat(10));
-        assert_eq!(invalid.size(), 0);
-        assert!(!invalid.unit());
-    }
-}
-
 #[derive(Default, Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
 pub struct TUVec3u8(pub TUVec3<u8>);
 impl TUVec3u8 {
@@ -534,5 +473,65 @@ impl Position for TUVec3u128 {
     type U = u128;
     fn position(&self) -> TUVec3<u128> {
         self.0
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::{is_power2, Aabb, TUVec3};
+
+    #[test]
+    fn test_aabb_contains() {
+        let aabb = Aabb::new_unchecked(TUVec3::new(8, 8, 8), 8u16);
+        assert!(aabb.contains(&TUVec3::zero()));
+
+        assert!(aabb.contains(&TUVec3::new(8, 8, 8)));
+
+        assert!(!aabb.contains(&TUVec3::new(16, 16, 16)));
+
+        assert!(!aabb.contains(&TUVec3::new(0, 16, 8)));
+    }
+
+    #[test]
+    fn test_ispower2() {
+        assert!(!is_power2(0u32));
+        assert!(!is_power2(1u32));
+        assert!(is_power2(2u8));
+        assert!(!is_power2(3u32));
+        assert!(is_power2(4u16));
+        assert!(!is_power2(5u16));
+        assert!(is_power2(8u8));
+        assert!(!is_power2(1023usize));
+        assert!(is_power2(1024usize));
+        assert!(!is_power2(1025usize));
+    }
+
+    #[test]
+    fn test_aabb_constructor() {
+        // Ok
+        assert!(Aabb::new(TUVec3::splat(2u8), 2).is_ok());
+
+        // Negative dimensions
+        assert!(Aabb::new(TUVec3::splat(16u16), 64).is_err());
+
+        // 7 is not the power of 2
+        assert!(Aabb::new(TUVec3::splat(16u16), 7).is_err());
+
+        // The upper bound cannot be represented by u8.
+        assert!(Aabb::new(TUVec3::splat(192u8), 64).is_err());
+    }
+
+    #[test]
+    fn test_aabb_boundary_arithmetic_does_not_overflow() {
+        let high = Aabb::from_min_max(TUVec3::splat(198u8), TUVec3::splat(202));
+        assert_eq!(high.center(), TUVec3::splat(200));
+
+        let unit = TUVec3::splat(u8::MAX).unit_aabb();
+        assert_eq!(unit.min, TUVec3::splat(u8::MAX));
+        assert_eq!(unit.max, TUVec3::splat(u8::MAX));
+
+        let invalid = Aabb::from_min_max(TUVec3::splat(10u8), TUVec3::splat(5));
+        assert_eq!(invalid.center(), TUVec3::splat(10));
+        assert_eq!(invalid.size(), 0);
+        assert!(!invalid.unit());
     }
 }

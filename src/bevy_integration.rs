@@ -66,9 +66,7 @@ use crate::{
     ElementId, NodeId, Volume,
 };
 use alloc::vec::Vec;
-use bevy::math::{
-    Vec3, Vec3A,
-};
+use bevy::math::{Vec3, Vec3A};
 use bevy::shape::{Aabb3d, BoundingSphere, IntersectsVolume, RayCast3d};
 use heapless::Vec as HVec;
 use num::cast;

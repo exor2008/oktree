@@ -1,6 +1,4 @@
-use bevy::math::{
-    Dir3, Vec3,
-};
+use bevy::math::{Dir3, Vec3};
 use bevy::shape::{Aabb3d, BoundingSphere, RayCast3d};
 use oktree::prelude::*;
 

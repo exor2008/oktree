@@ -1,9 +1,7 @@
 use std::time::Duration;
 
-use bevy::math::{
-    bounding::{Aabb3d, BoundingSphere, RayCast3d},
-    Dir3A, Vec3A,
-};
+use bevy::math::{Dir3A, Vec3A};
+use bevy::shape::{Aabb3d, BoundingSphere, RayCast3d};
 use criterion::{criterion_group, criterion_main, Criterion};
 use oktree::prelude::*;
 use rand::RngExt;

@@ -8,7 +8,8 @@
 //! ```rust
 //! use oktree::prelude::*;
 //! use bevy::prelude::*;
-//! use bevy::math::{bounding::RayCast3d, Vec3A};
+//! use bevy::math::Vec3A;
+//! use bevy::shape::RayCast3d;
 //!
 //! let mut tree = Octree::from_aabb(Aabb::new(TUVec3::splat(16), 16).unwrap());
 //! tree.insert(TUVec3u8::new(1, 1, 1));
@@ -28,7 +29,7 @@
 //! ```rust
 //! use oktree::prelude::*;
 //! use bevy::prelude::*;
-//! use bevy::math::bounding::BoundingSphere;
+//! use bevy::shape::BoundingSphere;
 //!
 //! let mut tree = Octree::from_aabb(Aabb::new(TUVec3::splat(16), 16).unwrap());
 //! tree.insert(TUVec3u8::new(1, 1, 1));
@@ -45,7 +46,8 @@
 //! ```rust
 //! use oktree::prelude::*;
 //! use bevy::prelude::*;
-//! use bevy::math::{bounding::Aabb3d, Vec3};
+//! use bevy::math::Vec3;
+//! use bevy::shape::Aabb3d;
 //!
 //!  let mut tree = Octree::from_aabb(Aabb::new(TUVec3::splat(16), 16).unwrap());
 //! tree.insert(TUVec3u8::new(1, 1, 1));
@@ -65,9 +67,9 @@ use crate::{
 };
 use alloc::vec::Vec;
 use bevy::math::{
-    bounding::{Aabb3d, BoundingSphere, IntersectsVolume, RayCast3d},
     Vec3, Vec3A,
 };
+use bevy::shape::{Aabb3d, BoundingSphere, IntersectsVolume, RayCast3d};
 use heapless::Vec as HVec;
 use num::cast;
 
@@ -84,7 +86,8 @@ where
     /// ```rust
     /// use oktree::prelude::*;
     /// use bevy::prelude::*;
-    /// use bevy::math::{bounding::RayCast3d, Vec3A};
+    /// use bevy::math::Vec3A;
+    /// use bevy::shape::RayCast3d;
     ///
     /// let mut tree = Octree::from_aabb(Aabb::new(TUVec3::splat(16), 16).unwrap());
     ///
@@ -163,7 +166,8 @@ where
     /// ```rust
     /// use oktree::prelude::*;
     /// use bevy::prelude::*;
-    /// use bevy::math::{bounding::{BoundingSphere, Aabb3d}, Vec3};
+    /// use bevy::math::Vec3;
+    /// use bevy::shape::{Aabb3d, BoundingSphere};
     ///
     /// let mut tree = Octree::from_aabb(Aabb::new(TUVec3::splat(16), 16).unwrap());
     ///
